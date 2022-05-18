@@ -177,8 +177,10 @@ class Network {
 
     public:
         int numLayers = 0;
-        Network() {
+        double learningRate;
 
+        Network(double learnRate) {
+            learningRate = learnRate;
         }
 
         void addLayer(Layer l) {
@@ -206,7 +208,6 @@ class Network {
 
 
 void back_prop_learning(std::vector<Example> examples,  Network network) {
-    //repeat
     // init all weights in network
     for (Layer l : network.getLayers()) {
         for (int i = 0; i < l.numNodes; i++) {
@@ -217,37 +218,76 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
         l.printWeights();
     }
 
-    // for each input output pair 
-    for (Example example : examples) {
-        // load input vector to first layers nodes
-        Layer inputLayer = network.getLayer(0);
-        for (int i = 0; i < inputLayer.numNodes; i++) {
-            inputLayer.setNode(i, example.x(i));
-        }
-      
-        inputLayer.printNodes();
+    for (int a = 0; a < 10; a++) {
 
-        for (int l = 1; l < network.numLayers; l++) {
-            Layer layer = network.getLayer(l);
-            Layer layerBefore = network.getLayer(l - 1);
-            for (int j = 0; j < layer.numNodes; j++) {
-                double in_j = 0;
-                for (int i = 0; i < layerBefore.numNodes; i++) {
-                    in_j += layerBefore.getNode(i) * layerBefore.getWeight(i, j);
-                }
-                layer.setInput(j, in_j);
-                layer.setNode(j, layer.activation(in_j));
+
+        // for each input output pair 
+        for (Example example : examples) {
+            // load input vector to first layers nodes
+            Layer inputLayer = network.getLayer(0);
+            for (int i = 0; i < inputLayer.numNodes; i++) {
+                inputLayer.setNode(i, example.x(i));
+                inputLayer.setInput(i, example.x(i));
             }
-            layer.printNodes();
+
+            inputLayer.printNodes();
+
+            for (int l = 1; l < network.numLayers; l++) {
+                Layer layer = network.getLayer(l);
+                Layer layerBefore = network.getLayer(l - 1);
+                for (int j = 0; j < layer.numNodes; j++) {
+                    double in_j = 0;
+                    for (int i = 0; i < layerBefore.numNodes; i++) {
+                        in_j += layerBefore.getNode(i) * layerBefore.getWeight(i, j);
+                    }
+                    layer.setInput(j, in_j);
+                    layer.setNode(j, layer.activation(in_j));
+                }
+                layer.printNodes();
+            }
+
+            // front propogation done at this point
+            // time to backpropagate errors through the network
+
+            // calculate error at output nodes from difference to expected output
+            Layer outputLayer = network.getLayer(network.numLayers - 1);
+            for (int j = 0; j < outputLayer.numNodes; j++) {
+                outputLayer.setError(j, outputLayer.derivative(outputLayer.getInput(j)) * (example.y(j) - outputLayer.getNode(j)));
+            }
+            outputLayer.printErrors();
+
+            // propogate error through network
+            for (int l = network.numLayers - 2; l >= 0; l--) {
+                Layer layer = network.getLayer(l);
+                Layer nextLayer = network.getLayer(l + 1);
+                for (int i = 0; i < layer.numNodes; i++) {
+                    double sum = 0;
+                    for (int j = 0; j < nextLayer.numNodes; j++) {
+                        sum += layer.getWeight(i, j) * nextLayer.getError(j);
+                    }
+                    layer.setError(i, layer.derivative(layer.getInput(i)) * sum);
+                }
+                layer.printErrors();
+            }
+
+            // update every weight based on errors
+            for (int l = 0; l < network.numLayers - 1; l++) {
+                Layer layer = network.getLayer(l);
+                Layer nextLayer = network.getLayer(l + 1);
+                for (int i = 0; i < layer.numNodes; i++) {
+                    for (int j = 0; j < nextLayer.numNodes; j++) {
+                        double weight = layer.getWeight(i, j);
+                        weight += network.learningRate * layer.getNode(i) * nextLayer.getError(j);
+                        layer.setWeight(i, j, weight);
+                    }
+                }
+                layer.printWeights();
+            }
+
+
         }
 
-        // front propogation done at this point
-        // time to backpropagate errors through the network
-        Layer outputLayer = network.getLayer(network.numLayers - 1);
-        for (int j = 0; j < outputLayer.numNodes; j++) {
-            outputLayer.setError(j, outputLayer.derivative(outputLayer.getInput(j)) * (example.y(j) - outputLayer.getNode(j)));
-        }
-        outputLayer.printErrors();
+
     }
 }
 
@@ -259,7 +299,7 @@ int main() {
     Layer one = Layer(1, 3, 2);
     Layer two = Layer(2, 2);
 
-    Network net = Network();
+    Network net = Network(0.8);
     net.addLayer(one);
     net.addLayer(two);
 

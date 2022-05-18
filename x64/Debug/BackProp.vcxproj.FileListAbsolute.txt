@@ -1,1 +1,0 @@
-C:\Users\harve\source\repos\BackProp\Homemade-Neural-Network\x64\Debug\BackProp.exe

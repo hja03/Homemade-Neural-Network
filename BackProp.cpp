@@ -1,9 +1,11 @@
 #include <iostream>
 #include <vector>
 #include "Examples.h"
+#include "ActivationFunctions.h"
 
 class Layer {
     double** weights;
+    double* inputs;
     double* nodes;
     double* errors;
     int layerNumber;
@@ -12,12 +14,16 @@ class Layer {
         int numNodes;
         int nextNumNodes;
 
+        double (*activation)(double);
+        double (*derivative)(double);
+
         // Default layer (Where there exists a next layer)
         Layer(int num, int size, int nextLayerSize) {
             // Set id number
             layerNumber = num;
             // Init nodes
             nodes = new double[size];
+            inputs = new double[size];
             numNodes = size;
             nextNumNodes = nextLayerSize;
 
@@ -28,6 +34,10 @@ class Layer {
             }
 
             errors = new double[size];
+
+            // By default set activation to ReLU
+            activation = &relu;
+            derivative = &reluDerivative;
         }
 
         // End output layer
@@ -36,6 +46,7 @@ class Layer {
             layerNumber = num;
             // Init nodes
             nodes = new double[size];
+            inputs = new double[size];
             numNodes = size;
             nextNumNodes = 0;
 
@@ -43,6 +54,10 @@ class Layer {
             weights = nullptr;
 
             errors = new double[size];
+
+            // By default set activation to ReLU
+            activation = &relu;
+            derivative = &reluDerivative;
         }
 
         void printNodes() {
@@ -62,6 +77,10 @@ class Layer {
         }
 
         void printWeights() {
+            if (nextNumNodes == 0) { 
+                std::cout << "Layer " << layerNumber << " weights: Output\n";
+                return;
+            }
             std::cout << "Layer " << layerNumber << " weights:\n";
             for (int i = 0; i < numNodes; i++) {
                 for (int j = 0; j < nextNumNodes; j++) {
@@ -135,6 +154,22 @@ class Layer {
             return errors[j];
         }
 
+        void setInput(int j, double value) {
+            if (j < 0 || j >= numNodes) {
+                std::cout << "Tried to set value for node with index out of range";
+                std::exit(EXIT_FAILURE);
+            }
+            inputs[j] = value;
+        }
+
+        double getInput(int j) {
+            if (j < 0 || j >= numNodes) {
+                std::cout << "Tried to set value for node with index out of range";
+                std::exit(EXIT_FAILURE);
+            }
+            return inputs[j];
+        }
+
 };
 
 class Network {
@@ -200,18 +235,19 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                 for (int i = 0; i < layerBefore.numNodes; i++) {
                     in_j += layerBefore.getNode(i) * layerBefore.getWeight(i, j);
                 }
-                //TODO need to pass in_j through activation function first ---------------------------!!!!!!
-                layer.setNode(j, in_j);
+                layer.setInput(j, in_j);
+                layer.setNode(j, layer.activation(in_j));
             }
             layer.printNodes();
         }
 
         // front propogation done at this point
+        // time to backpropagate errors through the network
         Layer outputLayer = network.getLayer(network.numLayers - 1);
         for (int j = 0; j < outputLayer.numNodes; j++) {
-            
+            outputLayer.setError(j, outputLayer.derivative(outputLayer.getInput(j)) * (example.y(j) - outputLayer.getNode(j)));
         }
-
+        outputLayer.printErrors();
     }
 }
 

@@ -1,209 +1,10 @@
 #include <iostream>
 #include <vector>
+
 #include "Examples.h"
 #include "ActivationFunctions.h"
-
-class Layer {
-    double** weights;
-    double* inputs;
-    double* nodes;
-    double* errors;
-    int layerNumber;
-
-    public:
-        int numNodes;
-        int nextNumNodes;
-
-        double (*activation)(double);
-        double (*derivative)(double);
-
-        // Default layer (Where there exists a next layer)
-        Layer(int num, int size, int nextLayerSize) {
-            // Set id number
-            layerNumber = num;
-            // Init nodes
-            nodes = new double[size];
-            inputs = new double[size];
-            numNodes = size;
-            nextNumNodes = nextLayerSize;
-
-            // Init weights going to next layer
-            weights = new double* [size];
-            for (int i = 0; i < size; i++) {
-                weights[i] = new double[nextLayerSize];
-            }
-
-            errors = new double[size];
-
-            // By default set activation to ReLU
-            activation = &relu;
-            derivative = &reluDerivative;
-        }
-
-        // End output layer
-        Layer(int num, int size) {
-            // Set id number
-            layerNumber = num;
-            // Init nodes
-            nodes = new double[size];
-            inputs = new double[size];
-            numNodes = size;
-            nextNumNodes = 0;
-
-            // Set weights to be null
-            weights = nullptr;
-
-            errors = new double[size];
-
-            // By default set activation to ReLU
-            activation = &relu;
-            derivative = &reluDerivative;
-        }
-
-        void printNodes() {
-            std::cout << "Layer " << layerNumber << " nodes: ";
-            for (int i = 0; i < numNodes; i++) {
-                std::cout << nodes[i] << " ";
-            }
-            std::cout << std::endl;
-        }
-
-        void printErrors() {
-            std::cout << "Layer " << layerNumber << " errors: ";
-            for (int i = 0; i < numNodes; i++) {
-                std::cout << errors[i] << " ";
-            }
-            std::cout << std::endl;
-        }
-
-        void printWeights() {
-            if (nextNumNodes == 0) { 
-                std::cout << "Layer " << layerNumber << " weights: Output\n";
-                return;
-            }
-            std::cout << "Layer " << layerNumber << " weights:\n";
-            for (int i = 0; i < numNodes; i++) {
-                for (int j = 0; j < nextNumNodes; j++) {
-                    std::cout << weights[i][j] << " ";
-                }
-                std::cout << std::endl;
-            }
-        }
-
-        void printSummary() {
-            std::cout << "Layer " << layerNumber << std::endl;
-            std::cout << "# of nodes: " << numNodes << std::endl;
-            std::cout << "Weight Dimensions: " << numNodes << ", " << nextNumNodes << std::endl;
-            std::cout << "# of weights: " << numNodes * nextNumNodes << "\n\n";
-        }
-
-        // Setters and Getters
-        void setWeight(int i, int j, double value) {
-            if (i < 0 || j < 0) {
-                std::cout << "Tried to access an element in an array below 0";
-                std::exit(EXIT_FAILURE);
-            }
-            if (i >= numNodes || j >= nextNumNodes) {
-                std::cout << "Tried to access an element in an array above max size";
-                std::exit(EXIT_FAILURE);
-            }
-            weights[i][j] = value;
-        }
-
-        void setNode(int i, double value) {
-            if (i < 0 || i >= numNodes) {
-                std::cout << "Tried to set value for node with index out of range";
-                std::exit(EXIT_FAILURE);
-            }
-            nodes[i] = value;
-        }
-
-        double getWeight(int i, int j) {
-            if (i < 0 || j < 0) {
-                std::cout << "Tried to access an element in an array below 0";
-                std::exit(EXIT_FAILURE);
-            }
-            if (i >= numNodes || j >= nextNumNodes) {
-                std::cout << "Tried to access an element in an array above max size";
-                std::exit(EXIT_FAILURE);
-            }
-            return weights[i][j];
-        }
-
-        double getNode(int i) {
-            if (i < 0 || i >= numNodes) {
-                std::cout << "Tried to set value for node with index out of range";
-                std::exit(EXIT_FAILURE);
-            }
-            return nodes[i];
-        }
-
-        void setError(int j, double value) {
-            if (j < 0 || j >= numNodes) {
-                std::cout << "Tried to set value for node with index out of range";
-                std::exit(EXIT_FAILURE);
-            }
-            errors[j] = value;
-        }
-
-        double getError(int j) {
-            if (j < 0 || j >= numNodes) {
-                std::cout << "Tried to set value for node with index out of range";
-                std::exit(EXIT_FAILURE);
-            }
-            return errors[j];
-        }
-
-        void setInput(int j, double value) {
-            if (j < 0 || j >= numNodes) {
-                std::cout << "Tried to set value for node with index out of range";
-                std::exit(EXIT_FAILURE);
-            }
-            inputs[j] = value;
-        }
-
-        double getInput(int j) {
-            if (j < 0 || j >= numNodes) {
-                std::cout << "Tried to set value for node with index out of range";
-                std::exit(EXIT_FAILURE);
-            }
-            return inputs[j];
-        }
-
-};
-
-class Network {
-    std::vector<Layer> layers;
-
-    public:
-        int numLayers = 0;
-        double learningRate;
-
-        Network(double learnRate) {
-            learningRate = learnRate;
-        }
-
-        void addLayer(Layer l) {
-            layers.push_back(l);
-            numLayers++;
-        }
-
-        void printSummary() {
-            std::cout << "--- Network Summary ---\n";
-            for (Layer l : layers) {
-                l.printSummary();
-            }
-        }
-
-        std::vector<Layer> getLayers() {
-            return layers;
-        }
-
-        Layer getLayer(int l) {
-            return layers.at(l);
-        }
-
-};
+#include "Layer.h"
+#include "Network.h"
 
 
 
@@ -219,8 +20,6 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
     }
 
     for (int a = 0; a < 10; a++) {
-
-
         // for each input output pair 
         for (Example example : examples) {
             // load input vector to first layers nodes
@@ -229,7 +28,6 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                 inputLayer.setNode(i, example.x(i));
                 inputLayer.setInput(i, example.x(i));
             }
-
             inputLayer.printNodes();
 
             for (int l = 1; l < network.numLayers; l++) {
@@ -245,7 +43,6 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                 }
                 layer.printNodes();
             }
-
             // front propogation done at this point
             // time to backpropagate errors through the network
 
@@ -283,20 +80,28 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                 }
                 layer.printWeights();
             }
-
-
         }
-
-
     }
 }
 
+void testNetwork(std::vector<Example> examples, Network network) {
+    double totalError = 0;
+    for (Example example : examples) {
+        // need to write network forward feed method
+
+
+
+    }
+
+
+
+}
 
 
 int main() {
     std::cout << "--- Starting Program ---\n\n";
 
-    Layer one = Layer(1, 3, 2);
+    Layer one = Layer(1, 2, 2);
     Layer two = Layer(2, 2);
 
     Network net = Network(0.8);
@@ -304,9 +109,16 @@ int main() {
     net.addLayer(two);
 
     std::vector<Example> examples;
-    double test1in[] = { 1,0,0 };
+    double test1in[] = { 1,0 };
     double test1out[] = { 1,0 };
+    double test2in[] = { 0,1 };
+    double test2out[] = { 0,1 };
+    double test3in[] = { 1,1 };
+    double test3out[] = { 0.5,0.5 };
+
     examples.push_back(Example(test1in, test1out));
+    examples.push_back(Example(test2in, test2out));
+    examples.push_back(Example(test3in, test3out));
 
     back_prop_learning(examples, net);
 }

@@ -4,17 +4,27 @@ class Example {
 	double* inputs;
 	double* outputs;
 
-public:
-	Example(double ins[], double outs[]) {
-		inputs = ins;
-		outputs = outs;
-	}
+	public:
+		// once example is constructed its vectors cannot be eddited
+		Example(double ins[], double outs[]) {
+			inputs = ins;
+			outputs = outs;
+		}
 
-	double x(int i) {
-		return inputs[i];
-	}
-	double y(int i) {
-		return outputs[i];
-	}
+		// methods to return whole input or output vector
+		double* x() {
+			return inputs;
+		}
+		double* y() {
+			return outputs;
+		}
+
+		// methods to return specific elements of input or output vector with index i
+		double x(int i) {
+			return inputs[i];
+		}
+		double y(int i) {
+			return outputs[i];
+		}
 	
 };

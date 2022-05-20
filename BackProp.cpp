@@ -5,7 +5,7 @@
 #include "ActivationFunctions.h"
 #include "Layer.h"
 #include "Network.h"
-
+#include "CSV.h"
 
 
 void back_prop_learning(std::vector<Example> examples,  Network network) {
@@ -19,8 +19,9 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
         l.printWeights();
     }
 
-    for (int a = 0; a < 10; a++) {
+    for (int a = 0; a < 100000; a++) {
         // for each input output pair 
+        double totalCrossEntropyLoss = 0;
         for (Example example : examples) {
             // load input vector to first layers nodes
             Layer inputLayer = network.getLayer(0);
@@ -28,9 +29,9 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                 inputLayer.setNode(i, example.x(i));
                 inputLayer.setInput(i, example.x(i));
             }
-            inputLayer.printNodes();
 
-            for (int l = 1; l < network.numLayers; l++) {
+            // compute hidden layers
+            for (int l = 1; l < network.numLayers - 1; l++) {
                 Layer layer = network.getLayer(l);
                 Layer layerBefore = network.getLayer(l - 1);
                 for (int j = 0; j < layer.numNodes; j++) {
@@ -41,17 +42,38 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                     layer.setInput(j, in_j);
                     layer.setNode(j, layer.activation(in_j));
                 }
-                layer.printNodes();
+            }
+
+            double softMaxSum = 0;
+            Layer outputLayer = network.getLayer(network.numLayers - 1);
+            Layer outputLayerBefore = network.getLayer(network.numLayers - 2);
+            for (int j = 0; j < outputLayer.numNodes; j++) {
+                double in_j = 0;
+                for (int i = 0; i < outputLayerBefore.numNodes; i++) {
+                    in_j += outputLayerBefore.getNode(i) * outputLayerBefore.getWeight(i, j);
+                }
+                outputLayer.setInput(j, in_j);
+                softMaxSum += exp(in_j);
+            }
+            for (int j = 0; j < outputLayer.numNodes; j++) {
+                outputLayer.setNode(j, softMax(outputLayer.getInput(j), softMaxSum));
             }
             // front propogation done at this point
+            // calculate cross entropy loss
+            double crossEntropyLoss = 0;
+            for (int i = 0; i < outputLayer.numNodes; i++) {
+                crossEntropyLoss += example.y(i) * log(outputLayer.getNode(i));
+            }
+            totalCrossEntropyLoss += -crossEntropyLoss;
+
+
+
             // time to backpropagate errors through the network
 
             // calculate error at output nodes from difference to expected output
-            Layer outputLayer = network.getLayer(network.numLayers - 1);
             for (int j = 0; j < outputLayer.numNodes; j++) {
-                outputLayer.setError(j, outputLayer.derivative(outputLayer.getInput(j)) * (example.y(j) - outputLayer.getNode(j)));
+                outputLayer.setError(j, softMaxDerivative(outputLayer.getInput(j), softMaxSum) * (example.y(j) - outputLayer.getNode(j)));
             }
-            outputLayer.printErrors();
 
             // propogate error through network
             for (int l = network.numLayers - 2; l >= 0; l--) {
@@ -64,7 +86,6 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                     }
                     layer.setError(i, layer.derivative(layer.getInput(i)) * sum);
                 }
-                layer.printErrors();
             }
 
             // update every weight based on errors
@@ -78,41 +99,37 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
                         layer.setWeight(i, j, weight);
                     }
                 }
-                layer.printWeights();
             }
         }
+        totalCrossEntropyLoss /= examples.size();
+        std::cout << "Avg X Entropy Loss: " << totalCrossEntropyLoss << std::endl;
     }
+    
 }
 
-void testNetwork(std::vector<Example> examples, Network network) {
-    double totalError = 0;
-    for (Example example : examples) {
-        // need to write network forward feed method
 
-
-
-    }
-
-
-
-}
 
 
 int main() {
     std::cout << "--- Starting Program ---\n\n";
 
     Layer one = Layer(1, 2, 2);
-    Layer two = Layer(2, 2);
+    Layer onepointfive = Layer(2, 2, 2);
+    Layer two = Layer(3, 2);
 
     Network net = Network(0.8);
     net.addLayer(one);
+    net.addLayer(onepointfive);
     net.addLayer(two);
+
 
     std::vector<Example> examples;
     double test1in[] = { 1,0 };
     double test1out[] = { 1,0 };
+
     double test2in[] = { 0,1 };
     double test2out[] = { 0,1 };
+
     double test3in[] = { 1,1 };
     double test3out[] = { 0.5,0.5 };
 
@@ -120,7 +137,9 @@ int main() {
     examples.push_back(Example(test2in, test2out));
     examples.push_back(Example(test3in, test3out));
 
-    back_prop_learning(examples, net);
+    //back_prop_learning(examples, net);
+    std::string fileName = "test.csv";
+    std::vector<std::vector<double>> csv = readCSV(fileName);
 }
 
 

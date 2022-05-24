@@ -67,6 +67,14 @@ public:
         std::cout << std::endl;
     }
 
+    void printInputs() {
+        std::cout << "Layer " << layerNumber << " inputs: ";
+        for (int i = 0; i < numNodes; i++) {
+            std::cout << inputs[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+
     void printErrors() {
         std::cout << "Layer " << layerNumber << " errors: ";
         for (int i = 0; i < numNodes; i++) {
@@ -169,4 +177,11 @@ public:
         return inputs[j];
     }
 
+    double* getInputsArray() {
+        return inputs;
+    }
+
+    void setNodesArray(double* ary) {
+        nodes = ary;
+    }
 };

@@ -17,9 +17,34 @@ double identityDerivative(double input) {
 	return 1.0;
 }
 
-double softMax(double z, double sum) {
-	return exp(z) / sum;
+
+double softMaxDerivative(double z) {
+	return z * (1 - z);
 }
-double softMaxDerivative(double z, double sum) {
-	return softMax(z, sum) * (1 - softMax(z, sum));
+
+// need to write a function which takes in a vector and returns the corrected softmax vector
+double* arraySoftMax(double* ary, int length) {
+	double* output = new double[length];
+	for (int i = 0; i < length; i++) {
+		output[i] = ary[i];
+	}
+	// find max
+	double maxValue = 0;
+	for (int i = 0; i < length; i++) {
+		if (output[i] > maxValue) { maxValue = output[i]; }
+	}
+
+	// minus max value from every element and add to sum
+	double sum = 0;
+	for (int i = 0; i < length; i++) {
+		output[i] -= maxValue;
+		sum += exp(output[i]);
+	}
+
+	// compute softmax for each element
+	for (int i = 0; i < length; i++) {
+		output[i] = exp(output[i]) / sum;
+	}
+	return output;
 }
+

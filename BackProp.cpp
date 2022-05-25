@@ -57,18 +57,13 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
 
             }
 
-            // need to do softmax properly after assigning all values
-            //outputLayer.printInputs();
+            // softmax activaion
             outputLayer.setNodesArray(arraySoftMax(outputLayer.getInputsArray(), outputLayer.numNodes));
-            //outputLayer.printNodes();
-            //example.print();
-
 
             // front propogation done at this point
             // calculate cross entropy loss
             double crossEntropyLoss = 0;
             for (int i = 0; i < outputLayer.numNodes; i++) {
-                //std::cout << " i - " << example.y(i) * log(outputLayer.getNode(i));
                 double nodeValue = outputLayer.getNode(i);
                 if (nodeValue == 0) { nodeValue = 0.001; }
                 crossEntropyLoss += example.y(i) * log(nodeValue);
@@ -76,15 +71,15 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
             }
             totalCrossEntropyLoss += -crossEntropyLoss;;
 
-            //std::cout << totalCrossEntropyLoss << "\n";
-
-
             // time to backpropagate errors through the network
 
             // calculate error at output nodes from difference to expected output
             for (int j = 0; j < outputLayer.numNodes; j++) {
-                outputLayer.setError(j, softMaxDerivative(outputLayer.getNode(j)) * (example.y(j) - outputLayer.getNode(j)));
+                outputLayer.setError(j, 
+                    //softMaxDerivative(outputLayer.getNode(j)) * 
+                    (example.y(j) - outputLayer.getNode(j)));
             }
+
 
             // propogate error through network
             for (int l = network.numLayers - 2; l >= 0; l--) {
@@ -118,8 +113,6 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
     }
     
 }
-
-
 
 
 int main() {
@@ -170,6 +163,11 @@ int main() {
     back_prop_learning(examples2, net);
 
 
+
+    std::cout << "Done training!\n";
+
+    
+    net.accuracyTest(examples2);
 }
 
 

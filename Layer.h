@@ -181,6 +181,10 @@ public:
         return inputs;
     }
 
+    double* getNodesArray() {
+        return nodes;
+    }
+
     void setNodesArray(double* ary) {
         nodes = ary;
     }

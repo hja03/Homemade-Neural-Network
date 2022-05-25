@@ -3,10 +3,11 @@
 #include "ActivationFunctions.h"
 
 class Layer {
-    double** weights;
     double* inputs;
     double* nodes;
+    double** weights;
     double* errors;
+
     int layerNumber;
 
 public:
@@ -15,50 +16,40 @@ public:
 
     double (*activation)(double);
     double (*derivative)(double);
+    static int layerCounter;
 
-    // Default layer (Where there exists a next layer)
-    Layer(int num, int size, int nextLayerSize) {
+    // layer constructor
+    Layer(int size) {
         // Set id number
-        layerNumber = num;
+        layerNumber = layerCounter;
+        layerCounter++;
+
         // Init nodes
-        nodes = new double[size];
         inputs = new double[size];
-        numNodes = size;
-        nextNumNodes = nextLayerSize;
-
-        // Init weights going to next layer
-        weights = new double* [size];
-        for (int i = 0; i < size; i++) {
-            weights[i] = new double[nextLayerSize];
-        }
-
+        nodes = new double[size];
+        weights = nullptr;
         errors = new double[size];
 
-        // By default set activation to ReLU
-        activation = &relu;
-        derivative = &reluDerivative;
-    }
-
-    // End output layer
-    Layer(int num, int size) {
-        // Set id number
-        layerNumber = num;
-        // Init nodes
-        nodes = new double[size];
-        inputs = new double[size];
         numNodes = size;
         nextNumNodes = 0;
 
-        // Set weights to be null
-        weights = nullptr;
-
-        errors = new double[size];
-
         // By default set activation to ReLU
         activation = &relu;
         derivative = &reluDerivative;
     }
 
+    // sets connection to next layer in network and constructs weights matrix
+    void setNextNumNodes(int nextLayerSize) {
+        nextNumNodes = nextLayerSize;
+
+        // Init weights going to next layer
+        weights = new double* [numNodes];
+        for (int i = 0; i < numNodes; i++) {
+            weights[i] = new double[nextLayerSize];
+        }
+    }
+
+    // debug print functions
     void printNodes() {
         std::cout << "Layer " << layerNumber << " nodes: ";
         for (int i = 0; i < numNodes; i++) {
@@ -98,7 +89,15 @@ public:
     }
 
     void printSummary() {
-        std::cout << "Layer " << layerNumber << std::endl;
+        if (layerNumber == 1) {
+            std::cout << "Layer " << layerNumber << " - Input" << std::endl;
+        }
+        else if (nextNumNodes == 0) {
+            std::cout << "Layer " << layerNumber << " - Output" << std::endl;
+        }
+        else {
+            std::cout << "Layer " << layerNumber << std::endl;
+        }
         std::cout << "# of nodes: " << numNodes << std::endl;
         std::cout << "Weight Dimensions: " << numNodes << ", " << nextNumNodes << std::endl;
         std::cout << "# of weights: " << numNodes * nextNumNodes << "\n\n";
@@ -117,14 +116,6 @@ public:
         weights[i][j] = value;
     }
 
-    void setNode(int i, double value) {
-        if (i < 0 || i >= numNodes) {
-            std::cout << "Tried to set value for node with index out of range";
-            std::exit(EXIT_FAILURE);
-        }
-        nodes[i] = value;
-    }
-
     double getWeight(int i, int j) {
         if (i < 0 || j < 0) {
             std::cout << "Tried to access an element in an array below 0";
@@ -135,6 +126,14 @@ public:
             std::exit(EXIT_FAILURE);
         }
         return weights[i][j];
+    }
+
+    void setNode(int i, double value) {
+        if (i < 0 || i >= numNodes) {
+            std::cout << "Tried to set value for node with index out of range";
+            std::exit(EXIT_FAILURE);
+        }
+        nodes[i] = value;
     }
 
     double getNode(int i) {
@@ -177,6 +176,7 @@ public:
         return inputs[j];
     }
 
+    // should probably return a copy of these arrays 
     double* getInputsArray() {
         return inputs;
     }
@@ -185,7 +185,11 @@ public:
         return nodes;
     }
 
+    // again this is pretty sloppy code practice
     void setNodesArray(double* ary) {
         nodes = ary;
     }
 };
+
+// sets static member layer counter to start at 1 
+int Layer::layerCounter = 1;

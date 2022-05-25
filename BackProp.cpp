@@ -10,7 +10,14 @@
 #include "CSV.h"
 
 
-void back_prop_learning(std::vector<Example> examples,  Network network) {
+void back_prop_learning(Network network, std::vector<Example> examples, int trainingCycles) {
+    if (trainingCycles < 1) {
+        std::cout << "At least 1 training cycle must be set!\n";
+        return;
+    }
+
+    std::cout << "--- Starting backpropagation learning! ---\n";
+
     // init all weights in network
     for (Layer l : network.getLayers()) {
         for (int i = 0; i < l.numNodes; i++) {
@@ -20,7 +27,7 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
         }
     }
 
-    for (int a = 0; a < 1000; a++) {
+    for (int a = 0; a < trainingCycles; a++) {
         // for each input output pair 
         double totalCrossEntropyLoss = 0;
         for (Example example : examples) {
@@ -111,64 +118,27 @@ void back_prop_learning(std::vector<Example> examples,  Network network) {
         totalCrossEntropyLoss /= examples.size();
         std::cout << "Avg X Entropy Loss: " << totalCrossEntropyLoss << std::endl;
     }
-    
+    std::cout << "Done training!\n";
 }
 
 
 int main() {
     std::cout << "--- Starting Program ---\n\n";
 
-    //Layer one = Layer(1, 2, 2);
-    //Layer onepointfive = Layer(2, 2, 2);
-    //Layer two = Layer(3, 2);
+    const double LEARNING_RATE = 0.1;
+    Network net = Network(LEARNING_RATE);
+    net.addLayer(Layer(54));
+    net.addLayer(Layer(20));
+    net.addLayer(Layer(2));
 
-    //Network net = Network(0.8);
-    //net.addLayer(one);
-    //net.addLayer(onepointfive);
-    //net.addLayer(two);
-
-
-    //std::vector<Example> examples;
-    //double test1in[] = { 1,0 };
-    //double test1out[] = { 1,0 };
-
-    //double test2in[] = { 0,1 };
-    //double test2out[] = { 0,1 };
-
-    //double test3in[] = { 1,1 };
-    //double test3out[] = { 0.5,0.5 };
-
-    //examples.push_back(Example(test1in, test1out, 2, 2));
-    //examples.push_back(Example(test2in, test2out, 2, 2));
-    //examples.push_back(Example(test3in, test3out, 2, 2));
-
-    //back_prop_learning(examples, net);
-
-    Layer one = Layer(1, 54, 20);
-    Layer two = Layer(2, 20, 2);
-    Layer three = Layer(3, 2, 0);
-
-    Network net = Network(0.1);
-    net.addLayer(one);
-    net.addLayer(two);
-    net.addLayer(three);
-
-
+    // loads spam filtering dataset to examples vector
     std::string fileName = "test.csv";
     std::vector<std::vector<double>> csv = readCSV(fileName);
-    std::vector<Example> examples2 = csvToExamples(csv, 2);
+    std::vector<Example> examples = csvToExamples(csv, 2);
 
-
-
-    back_prop_learning(examples2, net);
-
-
-
-    std::cout << "Done training!\n";
-
-    
-    net.accuracyTest(examples2);
+    net.printSummary();
+    const int EPOCHS = 100;
+    back_prop_learning(net, examples, EPOCHS);
+ 
+    net.accuracyTest(examples);
 }
-
-
-

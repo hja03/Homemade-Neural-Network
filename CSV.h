@@ -8,6 +8,7 @@
 #include <map>
 #include <stdlib.h>
 
+// reads a .csv file into a 2d vector
 std::vector<std::vector<double>> readCSV(std::string fileName) {
 	std::ifstream file(fileName);
 	std::vector<std::vector<double>> output;

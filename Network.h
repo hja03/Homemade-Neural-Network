@@ -15,6 +15,9 @@ class Network {
         }
 
         void addLayer(Layer l) {
+            if (layers.size() > 0) {
+                layers.back().setNextNumNodes(l.numNodes);
+            }
             layers.push_back(l);
             numLayers++;
         }

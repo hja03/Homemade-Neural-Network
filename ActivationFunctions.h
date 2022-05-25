@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <math.h>
 
+// REctified Linear Unit
 double relu(double input) {
 	return std::max(0.0, input);
 }
@@ -10,6 +11,7 @@ double reluDerivative(double input) {
 	else { return 0.0; }
 }
 
+// Constant
 double identity(double input) {
 	return input;
 }
@@ -17,12 +19,7 @@ double identityDerivative(double input) {
 	return 1.0;
 }
 
-
-double softMaxDerivative(double z) {
-	return z * (1 - z);
-}
-
-// need to write a function which takes in a vector and returns the corrected softmax vector
+// takes in a vector and returns the corrected softmax vector
 double* arraySoftMax(double* ary, int length) {
 	double* output = new double[length];
 	for (int i = 0; i < length; i++) {
@@ -48,3 +45,6 @@ double* arraySoftMax(double* ary, int length) {
 	return output;
 }
 
+double softMaxDerivative(double z) {
+	return z * (1 - z);
+}

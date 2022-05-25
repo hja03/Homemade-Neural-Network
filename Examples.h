@@ -8,7 +8,6 @@ class Example {
 	int inSize;
 	int outSize;
 
-
 	public:
 		// once example is constructed its vectors cannot be eddited
 		Example(double ins[], double outs[], int inputSize, int outputSize) {
@@ -35,6 +34,7 @@ class Example {
 			return outputs[i];
 		}
 
+		// debug print
 		void print() {
 			std::cout << "Input: ";
 			for (int i = 0; i < inSize; i++) {
@@ -51,6 +51,7 @@ class Example {
 
 // turns a (output, input) set of vectors into a vector of examples ready to be used
 // specifically for binary labels
+// need to generalise for >2 labels
 std::vector<Example> csvToExamples(std::vector<std::vector<double>> vectors, int outputSize) {
 	std::vector<Example> output =  std::vector<Example>();
 

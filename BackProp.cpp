@@ -125,20 +125,25 @@ void back_prop_learning(Network network, std::vector<Example> examples, int trai
 int main() {
     std::cout << "--- Starting Program ---\n\n";
 
-    const double LEARNING_RATE = 0.1;
+    const double LEARNING_RATE = 0.001;
     Network net = Network(LEARNING_RATE);
     net.addLayer(Layer(54));
-    net.addLayer(Layer(20));
+    net.addLayer(Layer(30));
     net.addLayer(Layer(2));
 
     // loads spam filtering dataset to examples vector
     std::string fileName = "test.csv";
+    std::string fileName = "train.csv";
     std::vector<std::vector<double>> csv = readCSV(fileName);
-    std::vector<Example> examples = csvToExamples(csv, 2);
+    std::vector<Example> training = csvToExamples(csv, 2);
+
+    std::string fileName2 = "test.csv";
+    std::vector<std::vector<double>> csv2 = readCSV(fileName2);
+    std::vector<Example> testing = csvToExamples(csv2, 2);
 
     net.printSummary();
-    const int EPOCHS = 100;
-    back_prop_learning(net, examples, EPOCHS);
+    const int EPOCHS = 500;
+    back_prop_learning(net, training, EPOCHS);
  
-    net.accuracyTest(examples);
+    net.accuracyTest(testing);
 }

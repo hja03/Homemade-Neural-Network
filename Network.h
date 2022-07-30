@@ -14,19 +14,13 @@ class Network {
             learningRate = learnRate;
         }
 
+        // Accessing Layers
         void addLayer(Layer l) {
             if (layers.size() > 0) {
                 layers.back().setNextNumNodes(l.numNodes);
             }
             layers.push_back(l);
             numLayers++;
-        }
-
-        void printSummary() {
-            std::cout << "--- Network Summary ---\n";
-            for (Layer l : layers) {
-                l.printSummary();
-            }
         }
 
         std::vector<Layer> getLayers() {
@@ -37,6 +31,15 @@ class Network {
             return layers.at(l);
         }
 
+        // debug print
+        void printSummary() {
+            std::cout << "--- Network Summary ---\n";
+            for (Layer l : layers) {
+                l.printSummary();
+            }
+        }
+
+        // predicts an input vector and returns the predicted label index
         int predict(double* input) {
             // load input vector to first layers nodes
             Layer inputLayer = getLayer(0);
@@ -70,7 +73,7 @@ class Network {
 
             }
 
-            // softmax activaion
+            // softmax activation
             outputLayer.setNodesArray(arraySoftMax(outputLayer.getInputsArray(), outputLayer.numNodes));
 
             int maxIndex = std::distance(outputLayer.getNodesArray(),
@@ -78,23 +81,15 @@ class Network {
             return maxIndex;
         }
 
+        // need to generalise this for multi class networks
         double accuracyTest(std::vector<Example> examples) {
             int correct = 0;
             for (Example ex : examples) {
                 int actualIndex = 0;
-                if (ex.y(0) == 1) {
-                    actualIndex = 0;
-                }
-                else {
-                    actualIndex = 1;
-                }
+                if (ex.y(0) == 1) { actualIndex = 0; }
+                else { actualIndex = 1; }
 
-
-                if (predict(ex.x()) == actualIndex) {
-                    correct += 1;
-                    
-                }
-
+                if (predict(ex.x()) == actualIndex) { correct += 1; }
             }
 
             std::cout << "Number correct: " << correct;

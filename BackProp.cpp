@@ -27,7 +27,7 @@ void back_prop_learning(Network network, std::vector<Example> examples, int trai
         }
     }
 
-    for (int a = 0; a < trainingCycles; a++) {
+    for (int step = 0; step < trainingCycles; step++) {
         // for each input output pair 
         double totalCrossEntropyLoss = 0;
         for (Example example : examples) {
@@ -116,7 +116,7 @@ void back_prop_learning(Network network, std::vector<Example> examples, int trai
             }
         }
         totalCrossEntropyLoss /= examples.size();
-        std::cout << "Avg X Entropy Loss: " << totalCrossEntropyLoss << std::endl;
+        std::cout << "Step: " << step << " Loss: " << totalCrossEntropyLoss << "\r";
     }
     std::cout << "Done training!\n";
 }
@@ -132,7 +132,6 @@ int main() {
     net.addLayer(Layer(2));
 
     // loads spam filtering dataset to examples vector
-    std::string fileName = "test.csv";
     std::string fileName = "train.csv";
     std::vector<std::vector<double>> csv = readCSV(fileName);
     std::vector<Example> training = csvToExamples(csv, 2);
@@ -142,8 +141,8 @@ int main() {
     std::vector<Example> testing = csvToExamples(csv2, 2);
 
     net.printSummary();
-    const int EPOCHS = 500;
-    back_prop_learning(net, training, EPOCHS);
+    const int STEPS = 500;
+    back_prop_learning(net, training, STEPS);
  
     net.accuracyTest(testing);
 }
